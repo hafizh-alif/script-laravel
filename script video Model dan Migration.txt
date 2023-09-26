@@ -1,0 +1,174 @@
+- Lanjutkan projek VSCode yang telah kita buat kemarin, yaitu example-app (atau nama lain sesuai dengan pilihan Anda)
+
+- Edit file .env, lalu atur DB_DATABASE sesuai dengan nama database yang Anda pilih. (catatan: nama database harus tanpa spasi)
+
+- Jalankan XAMPP Control Panel dan nyalakan Apache dan MySQL.
+
+- (Langkah pertama) masukkan perintah berikut: php artisan make:model Category -m, tunggu hingga proses selesai.
+
+- Akseslah file Category.php di folder app -> Models -> Category.php, lalu tambahkan kode berikut di dalam kelas Category extends Model:
+
+class Category extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'name', 'image', 'slug'
+    ];
+}
+
+- Kemudian, akseslah file 2023_09_23_035753_create_categories_table.php (catatan: Nama file bisa saja berbeda, namun perhatikan bagian “create_categories_table.php”) di direktori database -> migrations, ubah kode ini:
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('categories', function (Blueprint $table) {
+            $table->id();
+            $table->string('image');			
+            $table->string('name');
+            $table->string('slug')->unique();
+            $table->timestamps();
+        });
+    }
+}
+
+- Masukkan perintah berikut: php artisan migrate . Tunggu hingga proses selesai. Cek apakah database baru sudah terbentuk, dan cek juga apakah tabel category sudah ada.
+
+- (Langkah kedua) buatlah file model baru lagi dengan perintah: php artisan make:model Post -m, ubah file Post.php di folder app -> Models -> Post.php :
+
+class Post extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'title', 'slug', 'category_id', 'user_id', 'content', 'image'
+    ];
+}
+
+- Ubahlah file migration, namanya bisa beragam, namun perhatikan bagian terakhirnya (contoh: 2023_09_23_040205_create_posts_table.php, perhatikan bagian (create_posts_table.php)). Sesuaikan seperti ini:
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('posts', function (Blueprint $table) {
+            $table->id();
+            $table->string('title');
+            $table->string('slug')->unique();
+            $table->foreignId('category_id')->references('id')->on('categories')->cascadeOnDelete();
+            $table->foreignId('user_id')->references('id')->on('users')->cascadeOnDelete();
+            $table->text('content');
+            $table->string('image');
+            $table->timestamps();
+        });
+    }
+}
+
+- Masukkan perintah berikut: php artisan migrate . Tunggu hingga proses selesai. Cek apakah tabel post sudah terbentuk di mysql Anda.
+
+- (Langkah ketiga) buatlah model baru lagi dengan perintah: php artisan make:model PostView -m, lalu akses file PostView.php di folder app -> Models -> PostView.php, dan ubah kode ini:
+
+class PostView extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'post_id', 'views'
+    ];
+}
+
+- Buka file migration postview di folder database -> migration, cari yang namanya berakhiran dengan “create_post_views_table.php”, lalu sesuaikan kode ini:
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('post_views', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('post_id')->references('id')->on('posts')->cascadeOnDelete();	
+            $table->integer('views');
+            $table->timestamps();
+        });
+    }
+}
+
+- Jalankanlah perintah migrate dengan: php artisan migrate, tunggu hingga proses selesai. Cek apakah tabel postview sudah ada di mysql Anda.
+
+- (Langkah keempat) buatlah file model baru lagi dengan perintah: php artisan make:model Slider -m, lalu akses file Slider.php di folder app -> Models -> Slider.php, dan sesuaikan kode ini:
+
+class Slider extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'image', 'link'
+    ];
+}
+
+- Buka file migration slider di folder database -> migration, cari file yang namanya berakhir dengan “create_sliders_table.php”, lalu ubah kode ini:
+	
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('sliders', function (Blueprint $table) {
+            $table->id();
+            $table->string('image');
+            $table->string('link')->nullable();
+            $table->timestamps();
+        });
+    }
+}
+
+- Selanjutnya, masukkan perintah berikut: php artisan migrate. Tunggu hingga proses selesai. Cek apakah tabel slider sudah terbentuk di mysql Anda.
+
+- Akseslah kembali file Category.php di folder app -> Models -> Category.php , lalu sesuaikan kembali kode ini:
+
+class Category extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'name', 'image', 'slug'
+    ];
+
+    public function posts(){
+        return $this->hasMany(Post::class);
+    }
+}
+
+- Buka file Post.php di folder app -> Models -> Post.php , lalu ubah kembali kode ini:
+
+class Post extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'title', 'slug', 'category_id', 'user_id', 'content', 'image'
+    ];
+
+    public function category(){
+        return $this->belongsTo(Category::class);
+    }
+
+    public function user(){
+        return $this->belongsTo(User::class);
+    }
+
+    public function views(){
+        return $this->belongsTo(PostView::class);
+    }
+}
