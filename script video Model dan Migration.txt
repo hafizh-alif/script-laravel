@@ -1,3 +1,5 @@
+Assalamualaikum ini adalah Script video Model dan Migration yang dibuat oleh saya
+
 - Lanjutkan projek VSCode yang telah kita buat kemarin, yaitu example-app (atau nama lain sesuai dengan pilihan Anda)
 
 - Edit file .env, lalu atur DB_DATABASE sesuai dengan nama database yang Anda pilih. (catatan: nama database harus tanpa spasi)
